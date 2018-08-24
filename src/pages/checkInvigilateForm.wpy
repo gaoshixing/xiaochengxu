@@ -1,0 +1,197 @@
+<style lang="less">
+    @import '../styles/base.less';
+    .check-invigilate-form-boss {
+        .personal-detail-list-item {
+            height: 60rpx;
+            color: @888;
+            font-size: 28rpx;
+            .exam-classes {
+                line-height: 60rpx;
+            }
+        }
+        .img-container {
+            height: 120rpx;
+            padding-top: 10rpx;
+            font-size: 28rpx;
+            color: @888;
+            .image-container-view {
+                width: 330rpx;
+                height: 100rpx;
+                white-space: nowrap;
+            }
+            image {
+                width: 100rpx;
+                height: 100rpx;
+                margin-left: 10rpx;
+            }
+        }
+        .center-black-title {
+            color: @000;
+            height: 90rpx;
+            font-size: 28rpx;
+            line-height: 90rpx;
+            text-align: center;
+            background-color: @fff;
+        }
+        .absent-stu-container {
+            border-bottom: solid 1rpx @ccc;
+        }
+        .absent-stu-container:last-child  {
+            border-bottom: none;
+        }
+    }
+    .icon-arrow-right-person {
+        width: 16rpx;
+        height: 26rpx;
+        top: 7rpx;
+        right: 0rpx;
+        position: absolute;
+    }
+    .over-text-view {
+        width: 50%;
+        height: 100%;
+        text-align: right;
+    }
+</style>
+
+<template>
+    <view class="check-invigilate-form-boss">
+        <view class="mt20 white">
+            <ListItemContainer classes="small">
+                <view  class="column-between ml30 mr30 personal-detail-list-item">
+                    <view>预计考生</view>
+                    <view>{{skrs}}人</view>
+                </view>
+            </ListItemContainer>
+            <ListItemContainer classes="small">
+                <view class="column-between ml30 mr30 personal-detail-list-item">
+                    <view>实考人数</view>
+                    <view>{{infos.skrs}}人</view>
+                </view>
+            </ListItemContainer>
+            <ListItemContainer classes="small">
+                <view  class="column-between ml30 mr30 personal-detail-list-item">
+                    <view>缺考人数</view>
+                    <view>{{infos.qkrs}}人</view>
+                </view>
+            </ListItemContainer>
+            <ListItemContainer classes="small">
+                <view  class="column-between ml30 mr30 personal-detail-list-item">
+                    <view>违规考生</view>
+                    <view>{{wgList.length}}人</view>
+                </view>
+            </ListItemContainer>
+            <ListItemContainer classes="small">
+                <view  class="column-between ml30 mr30 personal-detail-list-item">
+                    <view>考场记事</view>
+                    <view class="ellipsis over-text-view">{{infos.kcjs}}</view>
+                </view>
+            </ListItemContainer>
+        </view>
+
+        <view class="mt20 white">
+            <view class="center-black-title">缺考考生</view>
+                <view
+                    wx:for="{{qkList}}"
+                    wx:key="index"
+                    wx:for-item="item"
+                    wx:for-index="index"
+                    class="column-between ml30 mr30 personal-detail-list-item"
+                    @tap="tapToAbsent({{item.xsxm}}, {{item.xsxh}})">
+                    <view>{{item.xsxm}}</view>
+                    <view class="relative">
+                        <view class="mr30">{{item.xsxh}}</view>
+                        <image src="../images/arrow.png" class="icon-arrow-right-person middle" />
+                    </view>
+                </view>
+        </view>
+
+        <view class="mt20 white">
+            <view class="center-black-title">违规考生</view>
+
+                <view
+                    wx:for="{{wgList}}"
+                    wx:key="index"
+                    wx:for-item="items"
+                    wx:for-index="index"
+                    class="column-between ml30 mr30 personal-detail-list-item"
+                    @tap="tapToviolation({{items.xsxm}}, {{items.xsxh}}, {{items.wgxw}})">
+                    <view>{{items.xsxm}}</view>
+                    <view class="relative">
+                        <view class="mr30">{{items.xsxh}}</view>
+                        <image src="../images/arrow.png" class="icon-arrow-right-person middle"/>
+                    </view>
+                </view>
+        </view>
+
+    </view>    
+</template>
+
+<script>
+import wepy from 'wepy';
+import tips from 'utils/tips';
+import Invigilate from 'api/invigilate';
+export default class CheckInvigilateForm extends wepy.page {
+    config = {
+        navigationBarTitleText: '查看详情',
+    };
+    data = {
+        infos: null,
+        skrs: 0,
+        qkList: [],
+        wgList: [],
+    };
+
+    methods = {
+        /*
+        * 查看缺考考生
+        */
+        tapToAbsent(val1, val2) {
+            if (!val1 || !val2) {
+                tips.error('请稍后再试');
+                return false;
+            }
+            wepy.navigateTo({ url: `absentStudent?xm=${val1}&xh=${val2}`, });
+        },
+        /*
+        * 查看违规考生
+        */
+        tapToviolation(val1, val2, val3) {
+            console.log(val1, val2, val3);
+            wepy.navigateTo({ url: `violationStudent?types=show&xm=${val1}&xh=${val2}&wgxw=${val3}`, });
+        },
+        /*
+        * 预览图片
+        */
+        tapToPreviewImage() {
+            wepy.previewImage({
+                current: 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', // 当前显示图片的http链接
+                urls: [ 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', ], // 需要预览的图片http链接列表
+            });
+        },
+        async getPageInfo(query, that) {
+            const rdata = await Invigilate.form({
+                jkryId: query.id,
+            });
+            if (rdata.statusCode === 200) {
+                console.log('[ form ]', rdata.data.data);
+                that.infos = rdata.data.data;
+                that.skrs = Number(that.infos.skrs) + Number(that.infos.qkrs);
+                that.infos.kwWgjlList.forEach(item => {
+                    if (item.wglx === '0') {
+                        that.qkList.push(item);
+                    } else if (item.wglx === '1') {
+                        that.wgList.push(item);
+                    }
+                });
+                that.$apply(that);
+            } else {
+                tips.error(rdata.message);
+            }
+        },
+    };
+    onLoad(query) {
+        this.methods.getPageInfo(query, this);
+    };
+};
+</script>

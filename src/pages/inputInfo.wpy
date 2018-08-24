@@ -1,0 +1,64 @@
+<template>
+    <view class="input-info-boss pl20 pr20">
+        <textarea 
+            value='{{infos}}'
+            maxlength='-1'
+            class="white mt30 input-info-text-area"
+            bindinput="getInputInfos"
+            placeholder-style="color:#888"
+            placeholder="请输入内容" />
+        <button type="primary" class="fix-bottom" @tap="tapToSubmit">确认</button>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import tips from 'utils/tips';
+export default class InputInfo extends wepy.page {
+    config = {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#0290FF',
+        navigationBarTitleText: '考场纪事',
+        navigationBarTextStyle: '#fff',
+    };
+    data = {
+        infos: '',
+    };
+
+    onLoad(query) {
+        this.config.navigationBarTitleText = query.names; // 设置标题
+        this.infos = wepy.$instance.globalData.gData.kcjs ? wepy.$instance.globalData.gData.kcjs : '';
+    };
+
+    methods = {
+        getInputInfos(val) {
+            this.infos = val.detail.value;
+        },
+        async tapToSubmit() {
+            if (this.config.navigationBarTitleText === '考场纪事') {
+                if (!this.infos) {
+                    tips.error('请输入考场纪事');
+                    return;
+                }
+                wepy.$instance.globalData.gData.kcjs = this.infos;
+            }
+            wepy.navigateBack({
+                delta: 1,
+            });
+        },
+    };
+};
+</script>
+
+<style lang="less">
+    @import '../styles/base.less';
+    .input-info-boss {
+        .input-info-text-area {
+            width: 100%;
+            font-size: 32rpx;
+            border-radius: 10rpx;
+            padding: 10rpx;
+            box-sizing: border-box;
+        }
+    }
+</style>

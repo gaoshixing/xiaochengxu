@@ -1,0 +1,122 @@
+<style lang='less'>
+    .exam-plan {
+        .status {
+            float:right;
+            margin: 3px 5px 0 0;
+            font-size: 34rpx;
+            line-height: 48rpx;
+        }
+        .pass {
+            color: #00C700;
+        }
+        .no-pass {
+            color: #FF2A2A;
+        }
+        .miss {
+            color: #B79638
+        }
+    }
+
+</style>
+<template>
+    <view class='exam-plan'>
+       <repeat 
+            for="{{planList}}" 
+            key="index" index="index" 
+            item="item">
+            <textRecordC 
+                :recordDate="item"
+                :isShowTitle.sync="false"
+                :dataLength="planList.length"
+                :index="index"
+            >
+            <taxt slot="status" class="status {{item.status=='1'?'pass':item.status=='2'?'no-pass':'miss'}}">
+                
+            </taxt>
+            </textRecordC>
+        </repeat>
+        <bottomTab
+            position="fixed-bottom"
+            :listA='listA'
+            :int='int'
+            @tabChanges.user='tabChanges'
+        ></bottomTab>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import textRecordC from 'components/textRecordC';
+import bottomTab from 'components/bottomTab';
+import student from '../api/student';
+
+export default class textRecord extends wepy.page {
+    config = {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#0290FF',
+        navigationBarTitleText: '考试安排',
+        navigationBarTextStyle: '#fff',
+    };
+    components = {
+        textRecordC,
+        bottomTab,
+    };
+    data = {
+        num: 0,
+        int: 0,
+        planList: [
+            // { school: '育才校区', site: '主楼二层/三层', time: '2018-03-22', status: '未提交', },
+            // { school: '育才校区', site: '主楼二层/三层', time: '2018-03-22', status: '提交', },
+            // { school: '育才校区', site: '主楼二层/三层', time: '2018-03-22', status: '未提交', },
+            // { school: '育才校区', site: '主楼二层/三层', time: '2018-03-22', status: '未提交', },
+            // { school: '育才校区', site: '主楼二层/三层', time: '2018-03-22', status: '提交', },
+        ],
+        listA: [
+            {
+                title: '考试安排',
+                src: '../images/JKanpai.png',
+                ac_src: '../images/ac_JKanpai.png',
+            },
+            {
+                title: '成绩查询',
+                src: '../images/JKjilu.png',
+                ac_src: '../images/ac_JKjilu.png',
+            },
+            {
+                title: '个人中心',
+                src: '../images/Shape.png',
+                ac_src: '../images/Shape1.png',
+            },
+        ],
+    };
+    methods = {
+        tabChanges(val) {
+            if (val === 1) {
+                wepy.navigateTo({
+                    url: 'gradeQuery',
+                });
+                return;
+            };
+            if (val === 2) {
+                wepy.navigateTo({
+                    url: 'personCenter?type=1',
+                });
+                return;
+            };
+            // wepy.navigateTo({
+            //     url: 'invSummarize',
+            // });
+        },
+    };
+    onLoad(op) {
+        const obj = {};
+        student.getTextPlan(obj).then(res => {
+            if (res.data.statusCode === 200) {
+                this.planList = res.data.data;
+                this.$apply();
+            };
+        }).catch(res => {
+        });
+    };
+}
+
+</script>

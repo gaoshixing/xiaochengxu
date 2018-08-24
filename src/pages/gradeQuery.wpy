@@ -1,0 +1,138 @@
+<style lang='less'>
+    .grade-query {
+        .status {
+            float:right;
+            font-size: 34rpx;
+            line-height: 48rpx;
+        }
+        .pass {
+            color: #00C700;
+        }
+        .no-pass {
+            color: #FF2A2A;
+        }
+        .miss {
+            color: #B79638
+        }
+    }
+</style>
+<template>
+    <view class='grade-query'>
+       <repeat 
+            for="{{planList}}" 
+            key="index" index="index" 
+            item="item">
+            <textRecordC 
+                :recordDate="item"
+                :isSc.sync='false'
+                :dataLength="planList.length"
+                :index="index"
+                @clickCurr.user="clickCurr1"
+            >
+                <taxt slot="status2" class="status {{item.kszt=='1'?'pass':item.kszt=='2'?'no-pass':'miss'}}">
+                    {{item.kszt == 1 ? '正常' : item.kszt == 2 ? '补考' : item.kszt == 3 ? '缓考' : '免听'}}
+                </taxt>
+            </textRecordC>
+        </repeat>
+        <bottomTab
+            position="fixed-bottom"
+            :listA='listA'
+            :int='int'
+            @tabChanges.user='tabChanges'
+        ></bottomTab>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import textRecordC from 'components/textRecordC';
+import bottomTab from 'components/bottomTab';
+import student from '../api/student';
+export default class textRecord extends wepy.page {
+    config = {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#0290FF',
+        navigationBarTitleText: '成绩查询',
+        navigationBarTextStyle: '#fff',
+    };
+    components = {
+        textRecordC,
+        bottomTab,
+    };
+    data = {
+        num: 0,
+        int: 1,
+        name: 1,
+        planList: [
+            // { school: '数学', site: '', time: '2018-03-22', status: '通过', },
+            // { school: '语文', site: '', time: '2018-03-22', status: '未通过', },
+            // { school: '英语', site: '', time: '2018-03-22', status: '通过', },
+            // { school: '概率', site: '', time: '2018-03-22', status: '通过', },
+            // { school: '高数', site: '', time: '2018-03-22', status: '缺考', },
+            // { school: '地鼠', site: '', time: '2018-03-22', status: '缺考', },
+        ],
+        listA: [
+            {
+                title: '成绩查询',
+                src: '../images/JKjilu.png',
+                ac_src: '../images/ac_JKjilu.png',
+            },
+            {
+                title: '考试安排',
+                src: '../images/JKanpai.png',
+                ac_src: '../images/ac_JKanpai.png',
+            },
+            {
+                title: '个人中心',
+                src: '../images/Shape.png',
+                ac_src: '../images/Shape1.png',
+            },
+
+        ],
+    };
+    methods = {
+        tabChanges(val) {
+            if (val === 0) {
+                wepy.navigateTo({
+                    url: 'examPlan',
+                });
+                return;
+            };
+            if (val === 2) {
+                wepy.navigateTo({
+                    url: 'personCenter?type=1',
+                });
+                return;
+            };
+            // wepy.navigateTo({
+            //     url: 'invSummarize',
+            // });
+        },
+        clickCurr1(val) {
+            wepy.navigateTo({
+                url: `personCenter?name=${this.name}`,
+            });
+        },
+    };
+    onLoad(op) {
+        const obj = {
+            q: op.q,
+            nd: op.nd,
+        };
+        student.getStudentGrade(obj).then(res => {
+            if (res.data.statusCode === 200) {
+                this.planList = res.data.data;
+                this.$apply();
+            };
+        }).catch(res => {
+        });
+        // const obj = {};
+        // student.getStudentGrade(obj).then(res => {
+        //     this.planList = res.data.data;
+        //     // console.log(res.data.data, 88);
+        //     this.$apply();
+        // }).catch(res => {
+        // });
+    };
+}
+
+</script>

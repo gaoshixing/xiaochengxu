@@ -1,0 +1,153 @@
+<style lang="less">
+    @import '../styles/base.less';
+    .login-boss {
+        background-color: @fff;
+        width: 100%;
+        height: 100%;
+        .login-title {
+            text-align: center;
+            padding-top: 100rpx;
+            margin-bottom: 200rpx;
+            color: #030303;
+            font-size: 36rpx;
+        }
+        .login-user-pwd {
+            >view {
+                height: 100rpx;
+                line-height: 100rpx;
+                box-sizing: border-box;
+                overflow: hidden;
+                border-bottom: solid 1rpx #979797;
+                position: relative;
+                padding-left: 135rpx;
+                text {
+                    color: #333333;
+                    font-size: 32rpx;
+                    display: inline-block;
+                    position: absolute;
+                    left: 0;
+                }
+                input {
+                    display: inline-block;
+                    vertical-align: middle;
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+        }
+        .login-button {
+            color: #fff;
+            width: 670rpx;
+            height: 88rpx;
+            text-align: center;
+            line-height: 88rpx;
+            background-color: #F1A100;
+            border-radius: 6px;
+            margin-top: 100rpx;
+        }
+    }
+</style>
+<template>
+  <view class="login-boss">
+        <view class="login-title">期末考核全流程监控系统</view>
+        <view class="login-user-pwd ml30 mr30">
+                <view>
+                    <text>用户名</text>
+                    <input
+                        type="text"
+                        confirm-type="next"
+                        style="color:#333;"
+                        bindinput="inputUsername"
+                        bindconfirm="tapContainer2"
+                        placeholder="请输入用户名"
+                        adjust-position="true"
+                        placeholder-style="font-size: 32rpx; color:#CCCCCC;"/>
+                </view>
+                <view>
+                    <text space="nbsp">密   码</text>
+                    <input
+                        type="text"
+                        confirm-type="go"
+                        bindinput="inputPassword"
+                        bindconfirm="tapLogin"
+                        password="true"
+                        placeholder="请输入密码"
+                        style="color:#333;"
+                        adjust-position="true"
+                        placeholder-style="font-size: 32rpx; color:#CCCCCC;"/>
+                </view>
+        </view>
+        <view class="login-button ml30 mr30" @tap="tapLogin">登录</view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import tips from 'utils/tips';
+// import util from 'utils/util';
+import login from 'api/login';
+import Sys from 'api/sys';
+
+export default class Index extends wepy.page {
+    config = {
+        navigationBarBackgroundColor: '#fff',
+        navigationBarTitleText: '',
+    }
+    components = {
+    };
+
+    data = {
+        username: '',
+        password: '',
+    };
+
+    computed = {
+    };
+
+    onShow() {
+    };
+
+    methods = {
+        inputUsername(e) {
+            this.username = e.detail.value;
+        },
+        inputPassword(e) {
+            this.password = e.detail.value;
+        },
+        async tapLogin() {
+            if (!this.username || !this.password) return tips.error('用户名或密码错误');
+
+            tips.loading('登录中');
+
+            const data = {
+                username: this.username,
+                password: this.password,
+            };
+
+            const rdatas = await login.login(data);
+
+            if (rdatas.statusCode === 200) {
+                const rInfo = await Sys.userInfo();
+
+                if (rInfo.statusCode === 200) {
+                    /*
+                    * 108 监考老师
+                    * 109 巡考老师
+                    * 110 学生
+                    */
+                    switch (rInfo.data.data.roleId) {
+                    case '108': wepy.navigateTo({ url: 'invigilateManage', }); break;
+                    case '109': wepy.navigateTo({ url: 'textRecord', }); break;
+                    case '110': wepy.navigateTo({ url: 'examPlan', }); break;
+                    };
+                } else {
+                    tips.error(rInfo.message);
+                }
+            } else {
+                tips.error(rdatas.message);
+            }
+            tips.loaded();
+        },
+    };
+};
+</script>

@@ -1,0 +1,117 @@
+<style lang="less">
+    @import '../styles/base';
+    .find-pwd-boss {
+        .find-pwd-container {
+            padding: 0 30rpx;
+            background-color: @fff;
+            > view {
+                height: 100rpx;
+                line-height: 100rpx;
+                box-sizing: border-box;
+                overflow: hidden;
+                text {
+                    color: @333;
+                    font-size: 32rpx;
+                    width: 180rpx;
+                    display: inline-block;
+                }
+                input {
+                    display: inline-block;
+                    vertical-align: middle;
+                }
+            }
+        }
+    }
+</style>
+
+<template>
+    <view class="find-pwd-boss">
+        <view class="find-pwd-container">
+            <view>
+                <text>原密码</text>
+                <input type="text" placeholder="请填写原密码" password="true" bindinput="oldPass" placeholder-style="font-size: 32rpx; color:#CCC;" style="color:#333;"/>
+            </view>
+            <view>
+                <text>新密码</text>
+                <input type="text" placeholder="请填写新密码" password="true" bindinput="newPass" placeholder-style="font-size: 32rpx; color:#CCC;" style="color:#333;"/>
+            </view>
+            <view>
+                <text>确认密码</text>
+                <input type="text" placeholder="请再次填写确认" password="true" bindinput="confirmPass" placeholder-style="font-size: 32rpx; color:#CCC;" style="color:#333;"/>
+            </view>
+        </view>
+        <text style='color:red' wx:if='{{!isSame}}'>两次输入不一致</text>
+        <text style='color:red' >{{mess}}</text>
+        <button type="primary" @tap="amendPass" class="mr30 ml30 mt180">确定</button>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import sys from '../api/sys';
+import tips from 'utils/tips';
+import login from 'api/login';
+
+export default class FindPwd extends wepy.page {
+    config = {
+        navigationBarTitleText: '修改密码',
+    }
+
+    data = {
+        loginName: '',
+        oldPwd: '',
+        newPwd: '',
+        isSame: true,
+        mess: '',
+    };
+
+    methods = {
+        oldPass(val) {
+            this.oldPwd = val.detail.value;
+        },
+        newPass(val) {
+            this.newPwd = val.detail.value;
+        },
+        confirmPass(val) {
+            this.isSame = val.detail.value === this.newPwd;
+        },
+        amendPass() {
+            if (!this.isSame) return;
+            const that = this;
+            const obj = {
+                lgoinName: this.loginName,
+                oldPwd: this.oldPwd,
+                newPwd: this.newPwd,
+            };
+            sys.amendPassW(obj).then(res => {
+                if (res.message === '用户密码错误') {
+                    tips.error(res.message);
+                } else {
+                    tips.success('修改成功', 300).then(res => {
+                        that.methods.tapToLogout();
+                    });
+                }
+            });
+        },
+        async tapToLogout() {
+            tips.loading('退出登录中');
+            const rdata = await login.logout();
+            tips.loaded();
+            if (rdata.statusCode === 200) {
+                wepy.$instance.globalData.header = {};
+                wepy.reLaunch({
+                    url: 'login',
+                });
+            } else {
+                tips.error(rdata.message);
+            }
+        },
+    };
+    onLoad(op) {
+        sys.userInfo().then(res => {
+            this.loginName = res.data.data.loginName;
+            this.$apply();
+        });
+    }
+};
+</script>

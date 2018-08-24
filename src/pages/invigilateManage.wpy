@@ -1,0 +1,143 @@
+<style lang="less">
+    @import '../styles/base.less';
+    .invigilate-manage-boss {
+        .invigilate-manage-container {
+            .invigilate-manage-title {
+                color: @333;
+                height: 94rpx;
+                line-height: 94rpx;
+                font-size: 32rpx;
+                text-align: center;
+            }
+            .invigilate-manage-head-title {
+                color: @888;
+                font-size: 28rpx;
+                margin-bottom: 16rpx;
+                margin-top: 20rpx;
+            }
+        }
+    }
+</style>
+<template>
+    <view class="invigilate-manage-boss">
+
+        <view class="invigilate-manage-container">
+            <!-- 监考安排 -->
+            <view wx-if="{{ bTab  == 0 }}">
+                <view class="invigilate-manage-title white mb30">{{dqxq}}</view>
+                <view>
+                    <repeat for="{{list1}}" key="index" index="index" item="item">
+                        <view @tap="tapToDetail({{item.sjid}}, {{item.kcapid}}, {{item.jkid}})">
+                            <ListItemContainer classes="large">
+                                <LargeListItem :title="item.kmmc" :duration="item.kssj ? item.kssj : 'N/A'" :timming="item.timming"></LargeListItem>
+                            </ListItemContainer>
+                        </view>
+                    </repeat>
+                </view>
+            </view>
+            <!-- 监考记录 -->
+            <view wx-if="{{ bTab  == 1 }}">
+                <repeat for="{{list1}}" key="index" index="index" item="item">
+                    <view class="invigilate-manage-head-title ml30">{{item.title1}}</view>
+                    <repeat for="{{item.content}}" key="index" index="index" item="item">
+                        <view @tap="tapToDetail">
+                            <ListItemContainer classes="large">
+                                <LargeListItem :title="item.title" :duration="item.duration" :status="item.status"></LargeListItem>
+                            </ListItemContainer>
+                        </view>
+                    </repeat>
+                </repeat>
+            </view>
+        </view>
+         <bottomTab
+            ref="refBottomTab"
+            position="fixed-bottom"
+            @tabChanges.user="tapTabChanges"
+        ></bottomTab>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import tips from 'utils/tips';
+import bottomTab from 'components/bottomTab';
+import ListItemContainer from 'components/listItemContainer';
+import LargeListItem from 'components/largeListItem';
+import InvigilateManages from 'api/invigilate';
+import Common from 'api/common';
+
+export default class InvigilateManage extends wepy.page {
+    config = {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#0290FF',
+        navigationBarTitleText: '监考安排',
+        navigationBarTextStyle: '#fff',
+    }
+    components = {
+        bottomTab: bottomTab,
+        ListItemContainer: ListItemContainer,
+        LargeListItem: LargeListItem,
+    };
+
+    data = {
+        bTab: 0,
+        list1: [],
+        dqxq: '',
+    };
+    watch = {
+        bTab(newVal) {
+            console.log('[refBottomTab]', this.$com.bottomTab.int);
+            if (newVal === 1) {
+                this.bTab = 0;
+                this.$com.bottomTab.int = 0;
+                wepy.navigateTo({
+                    url: 'personCenter',
+                });
+            }
+        },
+    };
+
+    methods = {
+        tapTabChanges(val) {
+            this.bTab = val;
+        },
+        tapToDetail(val1, val2, val3, val4) {
+            wepy.navigateTo({
+                url: `invigilateDetail?sjId=${val1}&kcapId=${val2}&jkId=${val3}`,
+            });
+        },
+        async getDqxq(that) {
+            const rdata = await Common.nowNdXq();
+            if (rdata.statusCode === 200) {
+                that.dqxq = rdata.data.data.nowNdXq;
+                that.$apply();
+            } else {
+                tips.error(rdata.message);
+            }
+        },
+    };
+    events = {
+
+    };
+    async onLoad() {
+        tips.loading('加载中');
+        this.methods.getDqxq(this);
+        const rdata = await InvigilateManages.getJkList({});
+        tips.loaded();
+        if (rdata.statusCode === 200) {
+            this.list1 = rdata.data.data;
+            this.list1.forEach(item => {
+                item.kssj = new Date(item.kssj).format('yyyy-MM-dd');
+                switch (item.status) {
+                case '0': item.timming = '已开始'; break;
+                case '1': item.timming = '未开始'; break;
+                case '2': item.timming = '已结束'; break;
+                };
+            });
+            this.$apply();
+        } else {
+            tips.error(rdata.message);
+        }
+    };
+};
+</script>

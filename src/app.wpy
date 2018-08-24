@@ -1,0 +1,105 @@
+<style lang="less" src="./styles/base.less"></style>
+<style lang="less">
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+</style>
+
+<script>
+import wepy from 'wepy';
+import 'wepy-async-function';
+
+export default class extends wepy.app {
+    config = {
+        pages: [
+            'pages/login', // 登录
+            'pages/invigilateDetail', // 监考详情
+            'pages/invigilateForm', // 巡考登记表
+            'pages/checkInvigilateForm', // 监考登记表_查看详情
+            'pages/violationStudent', // 违规考生
+            'pages/absentStudent', // 缺考考生
+            'pages/registerSurface', // 监考登记表
+            'pages/invigilateManage', // 监考安排
+            'pages/findPwd', // 找回密码
+            'pages/textRecord', // 巡考登记
+            'pages/addStudent', // 添加考生
+            'pages/inputInfo',
+            'pages/invSummarize',
+            'pages/summarize',
+            'pages/inviSummrizeForm',
+            'pages/examPlan',
+            'pages/gradeQuery',
+            'pages/personCenter',
+            'pages/checkInfor',
+            'pages/missStudent',
+            'pages/addFraudStudent', // 违规学生
+        ],
+        window: {
+            backgroundTextStyle: 'light',
+            navigationBarBackgroundColor: '#0290FF',
+            navigationBarTitleText: '考务系统',
+            navigationBarTextStyle: 'white',
+        },
+    };
+
+    globalData = {
+        userInfo: null,
+        baseUrl: 'http://47.93.31.175:8191/spoc-kwgl/a/ws/kwgl',
+        baseUrlSys: 'http://47.93.31.175:8191/spoc-kwgl/a/ws/sys',
+        header: {},
+        gData: {
+            wgks: [],
+            qkks: [],
+        },
+    };
+
+    constructor() {
+        super();
+        this.use('requestfix');
+        this.use('promisify');
+        Date.prototype.format = function(format) {
+            const o = {
+                'M+': this.getMonth() + 1, // month
+                'd+': this.getDate(), // day
+                'h+': this.getHours(), // hour
+                'm+': this.getMinutes(), // minute
+                's+': this.getSeconds(), // second
+                'q+': Math.floor((this.getMonth() + 3) / 3), // quarter
+                'S': this.getMilliseconds(), // millisecond
+            };
+            if (/(y+)/.test(format)) {
+                format = format.replace(RegExp.$1, (this.getFullYear() + '').substr(4 - RegExp.$1.length));
+            }
+            for (const k in o) {
+                if (new RegExp('(' + k + ')').test(format)) {
+                    format = format.replace(RegExp.$1, RegExp.$1.length === 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length));
+                }
+            }
+            return format;
+        };
+    }
+
+    onLaunch() {
+        this.getUserInfo();
+    };
+
+    getUserInfo(cb) {
+        const that = this;
+        if (this.globalData.userInfo) {
+            return this.globalData.userInfo;
+        }
+        wepy.getUserInfo({
+            success(res) {
+                that.globalData.userInfo = res.userInfo;
+                console.log('globalData.userInfo', that.globalData.userInfo);
+                cb && cb(res.userInfo);
+            },
+        });
+    };
+};
+</script>

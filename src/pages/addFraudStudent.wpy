@@ -1,0 +1,221 @@
+<style lang="less">
+    .add-fraud-student {
+        width: 100%;
+        margin-top: 70rpx;
+        overflow: hidden;
+        position: relative;
+        box-sizing: border-box;
+        .package {
+            position: relative;
+            padding-left: 15rpx;
+            background-color: #fff;
+            height: 90rpx;
+            line-height: 90rpx;
+        }
+        .borderS {
+            border-bottom: 1px solid #E5E5E5;                
+        }
+        >view{
+            line-height: 100rpx;
+            input {
+                width: 450rpx;
+                display: inline-block;
+                background: #fff;
+                vertical-align: middle;
+            }
+            text {
+                margin-right: 10rpx;
+            }
+            .image-container-view {
+                margin-top: 15rpx;
+                width: 330rpx;
+                height: 100rpx;
+                white-space: nowrap;
+            }
+            image {
+                width: 100rpx;
+                height: 100rpx;
+                margin-left: 10rpx;
+            }
+        }
+        .add-student-input-name {
+            text-align: right;
+        }
+        .uploadFile {
+            width: 100rpx;
+            display: inline;
+            height: 30rpx;
+            font-size: 28rpx;
+        }
+    }
+</style>
+
+<template>
+    <view class="add-fraud-student">
+        <view 
+            class="package borderS"
+            @tap="tapCont(0)"
+        >
+            　　姓名：
+            <input
+                type='text'
+                maxlength="25"
+                focus="{{autoFocus[0]}}"
+                confirm-type='search'
+                class="add-student-input-name"
+                placeholder="请输入学生姓名"
+                bindinput="onclickToSearch"
+                placeholder-style="font-size: 32rpx;text-align:right"/>
+        </view>
+        <view 
+            class="package borderS"
+            @tap="tapCont(1)"
+        >
+            　　学号：
+            <input
+                type='text'
+                maxlength="25"
+                focus="{{autoFocus[1]}}"
+                confirm-type='search'
+                class="add-student-input-name"
+                placeholder="请输入学生学号"
+                bindinput="onclickToSearch1"
+                placeholder-style="font-size: 32rpx;text-align:right"/>
+        </view>
+        <view 
+            class="package borderS"
+            @tap="tapCont(2)"
+        >
+            违规行为：
+            <input
+                type='text'
+                maxlength="25"
+                focus="{{autoFocus[2]}}"
+                confirm-type='search'
+                class="add-student-input-name"
+                placeholder="请输入行为"
+                bindinput="onclickToSearch2"
+                placeholder-style="font-size: 32rpx;text-align:right"/>
+        </view>
+        <!-- <view 
+            class="package"
+        >
+            违规证据：
+            <text style="color:#ccc">点击上传</text>
+        </view>
+        <view>
+            <scroll-view scroll-x class="image-container-view">
+                <image @tap="tapToPreviewImage" src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                <image src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                <image src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                <image src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                <image src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+            </scroll-view>
+        </view> -->
+        <button type="primary" class="fix-bottom" @tap="tapToAddStu">确定</button>
+    </view>    
+</template>
+
+<script>
+import wepy from 'wepy';
+import tourTest from '../api/tourTest';
+import tips from 'utils/tips';
+export default class AddFraudStudent extends wepy.page {
+    config = {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#0290FF',
+        navigationBarTitleText: '违规学生',
+        navigationBarTextStyle: '#fff',
+    }
+    data = {
+        wgxw: '',
+        xsxh: '',
+        xsxm: '',
+        xkryId: '',
+        student: {
+            name: '',
+            no: '',
+            behavior: '',
+        },
+        itemId: '',
+        id: '',
+        autoFocus: {
+            0: false,
+            1: false,
+            2: false,
+        },
+    };
+    components = {
+    };
+
+    computed = {
+    };
+
+    methods = {
+        uploadFile() {},
+        onclickToSearch(e) {
+            this.xsxm = e.detail.value;
+        },
+        onclickToSearch1(e) {
+            this.xsxh = e.detail.value;
+        },
+        onclickToSearch2(e) {
+            this.wgxw = e.detail.value;
+        },
+        tapToAddStu() {
+            const obj = {
+                id: this.id,
+                xkryId: this.xkryId,
+                kwWgjlList: [ {
+                    id: this.itemId,
+                    // jkdjId: 登记编号 ,
+                    // remarks: 备注 ,
+                    // updateDate: 更新日期 ,
+                    // wglx: 违规类型 : 0：缺考；1：作弊 ,
+                    wgxw: this.wgxw,
+                    xsxh: this.xsxh,
+                    xsxm: this.xsxm,
+                }, ],
+            };
+            tourTest.save(obj).then(res => {
+                if (res.data.statusCode === 200) {
+                    // wepy.navigateTo({
+                    //     url: 'invigilateForm',
+                    // });
+                    tips.success('添加成功', 300).then(res => {
+                        wepy.navigateBack({ delta: 1, });
+                    });
+                };
+            }).catch(res => {
+            });
+        },
+        tapCont(val) {
+            this.autoFocus = {
+                0: false,
+                1: false,
+                2: false,
+            };
+            Object.keys(this.autoFocus).forEach((item, key) => {
+                if (key / 1 === val / 1) {
+                    this.autoFocus[key] = true;
+                } else {
+                    this.autoFocus[key] = false;
+                };
+            });
+        },
+        tapToPreviewImage() {
+            wepy.previewImage({
+                current: 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', // 当前显示图片的http链接
+                urls: [ 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', ], // 需要预览的图片http链接列表
+            });
+        },
+    };
+    onLoad(op) {
+        console.log(op);
+        this.itemId = op.itemId;
+        this.id = op.id;
+        this.xkryId = op.xkryId;
+    };
+};
+</script>
+

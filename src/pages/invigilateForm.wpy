@@ -1,0 +1,370 @@
+<style lang="less">
+    @import '../styles/base.less';
+    .invigilate-form {
+        position: relative;
+        font-size: 32rpx;
+        color: rgba(0,0,0,1);
+        line-height: 48rpx;
+        .titleInfor, .recordInfor, .statusInfor {
+            margin-top: 30rpx;
+            background-color: #fff;
+            padding-left: 29rpx;
+            .content {
+                position: relative;
+                padding: 21rpx 0rpx;
+                .inforCOntent {
+                    font-size: 34rpx;
+                    color: rgba(136,136,136,1);
+                    float: right;
+                    margin-right: 76rpx;
+                }
+            }
+        }
+        .statusInfor {
+            .content {
+                .contentT {
+                position: relative;
+                width: 469rpx;
+                display: inline-block;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            }
+        }
+        .contentInfor, .studentInfor{
+            position: relative;
+            margin-top: 30rpx;
+            background-color: #fff;
+            padding-left: 29rpx;
+            .contentT {
+                position: relative;
+                padding: 21rpx 0rpx;
+                width: 469rpx;
+                display: inline-block;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            .inforCOntent {
+                position: relative;
+                font-size: 34rpx;
+                color: rgba(136,136,136,1);
+                float: right;
+                margin-right: 76rpx;
+                padding: 21rpx 0rpx;
+            }
+        }
+        .studentInfor, .contentInfor {
+            .content {
+                position: relative; 
+            }
+        }
+        .borderB {
+            border-bottom: 1rpx solid #E5E5E5;
+        }
+        .addStudent {
+            color:#586C94;
+            padding: 21rpx 0rpx;
+            text-align: center;
+            cursor: pointer;
+        }
+        .text-area {
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 425rpx;
+            font-size: 28rpx;
+            background: #fff;
+            padding: 20rpx;
+            font-size: 34rpx;
+            box-sizing: border-box;
+        }
+        .titleInfor {
+            .content {
+                input {
+                    width: 450rpx;
+                    display: inline-block;
+                    background: #fff;
+                    vertical-align: middle;
+                }
+            }
+        }
+    }
+</style>
+<template>
+    <view class="invigilate-form">
+        <view class="titleInfor">
+            <view class="content borderB">
+                巡视时间:
+                <text style="float:right;margin-right:20px">{{year}}</text>
+            </view>
+            <view class="content">
+                巡视地点:
+                <text style="float:right;margin-right:20px">{{site}}</text>
+            </view>
+        </view>
+        <view class="contentInfor">
+            <view class="content {{index != contentInforList-1 ? 'borderB' : ''}}"
+                wx:for="{{contentInforList}}"
+            >
+                <text class="contentT">{{item.title}}</text>
+                <picker class="inforCOntent" bindchange="bindPickerChange1"  value="{{index1[index]}}" range="{{range}}" id="{{index}}">
+                    <text>{{range[index1[index]]}}</text>
+                </picker>
+                <image src="../images/arrow.png" class="icon-arrow-right middle" />
+            </view>
+        </view>
+        <view class="studentInfor">
+            <view style="color:rgba(136,136,136,1);padding: 21rpx 0rpx;" class="borderB">违规考生</view>
+             <view class="content borderB"
+                wx:for="{{obj.kwWgjlList}}"
+                index='index'
+                @tap='personInfo(index)'
+             > 
+                <text class="contentT">{{item.xsxm}}</text>
+                <text class="inforCOntent">{{item.xsxh}}</text>
+                <image src="../images/arrow.png" class="icon-arrow-right middle" />                
+            </view>
+            <view class="addStudent" @tap="addStudent">添加</view>            
+        </view>
+         <view class="statusInfor">
+            <view class="content">
+                <text class="contentT">回收所巡视考场的课程考核情况核情况核情况</text> 
+                <picker class="inforCOntent" bindchange="bindPickerChangeRecycle" value="{{index}}" range="{{recycleList}}">
+                    <text>{{recycleList[obj.isJchs]}}</text>
+                </picker>
+                <image src="../images/arrow.png" class="icon-arrow-right middle" />
+            </view>
+        </view>
+        <view class="recordInfor">
+           <view class="content" @tap="inviText">
+                巡视记录
+                <text class="inforCOntent">内容</text>
+                <image src="../images/arrow.png" class="icon-arrow-right middle" />
+            </view>
+        </view>
+        <!-- <view style="margin-top:94rpx">
+            <button type="primary" @tap="saveInfo">
+                保存
+            </button>
+        </view> -->
+        <!-- <popup
+            :value.sync="isShow"
+        >
+            <addFraudStudent>
+
+            </addFraudStudent>
+        </popup> -->
+        <!-- <popup1
+            :value.sync="isShowTextA"
+        >   
+            <view style="padding:42rpx 30rpx;">
+                 <textarea
+                    class='text-area'
+                    maxlength="-1"
+                >
+            </view> -->
+            <!-- <button type="primary" class="mt100 mr30 ml30">
+                保存
+            </button> -->
+        <!-- </popup1> -->
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import popup from '../components/popup';
+import tourTest from '../api/tourTest';
+export default class textRecord extends wepy.page {
+    config = {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#0290FF',
+        navigationBarTitleText: '巡考登记表',
+        navigationBarTextStyle: '#fff',
+    }
+    components = {
+        popup,
+        popup1: popup,
+    };
+
+    data = {
+        isShow: false,
+        isShowTextA: false,
+        recycleList: [ '回收', '未回收', ],
+        index: 0,
+        date: '',
+        site: '',
+        year: '',
+        id: '',
+        xkryId: '',
+        index1: {
+            0: 0,
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 1,
+            5: 0,
+        },
+        obj: {
+            // createDate:
+            // id:
+            // isJchs:
+            // isJcjk:
+            // isJckc:
+            // isJcsj:
+            // isJcwj:
+            // isJcxd:
+            // isJcxs:
+            // jchsXq:
+            // jcjkXq:
+            // jckcXq:
+            // jcsjXq:
+            // jcwjXq:
+            // jcxdXq:
+            // jcxsXq:
+            // remarks:
+            // updateDate:
+            // xkdd:
+            // xkryId:
+            // xksj:
+            // xsjl:
+        },
+        range: [ '正常', '异常', ],
+        contentInforList: [
+            { title: '检查监考员是否按时到位并监督其履行职责情况', index: '1', },
+            { title: '检查学生是否按规定带学生证和身份证参加考试', index: '1', },
+            { title: '检查考场清场情况及作为安排是否符合要求', index: '1', },
+            { title: '查监考员在考前是否给学生宣读', index: '1', },
+            { title: '考试是否按时开始和结束', index: '1', },
+            { title: '是否发现考生有违纪行', index: '1', },
+        ],
+        studentList: [
+            // { name: '高士2行', num: '1101230', },
+            // { name: '高士2行', num: '1101230', },
+            // { name: '高2士行', num: '1101230', },
+            // { name: '高士2行', num: '1101230', },
+        ],
+    };
+
+    computed = {};
+    methods = {
+        bindDateChange(op) {
+            this.date = op.detail.value;
+        },
+        bindPickerChange(op) {
+            this.index = op.detail.value;
+            if (op.detail.value === '1') {
+                wepy.navigateTo({
+                    url: 'inviSummrizeForm?name=异常情况',
+                });
+            };
+        },
+
+        bindPickerChangeRecycle(op) {
+            this.obj.isJchs = op.detail.value;
+            const obj = {
+                isJchs: op.detail.value === '回收' ? 1 : 0,
+                id: this.id,
+                xkryId: this.xkryId,
+            };
+            this.methods.saveInfo(obj);
+        },
+
+        bindPickerChange1(op) {
+            const curr = op.currentTarget.id;
+            this.index1[curr] = op.detail.value;
+            let type = '';
+            let typeV = '';
+            switch (curr) {
+            case '0': type = 'isJcjk'; typeV = 'jcjkXq'; break;
+            case '1': type = 'isJcxs'; typeV = 'jcxsXq'; break;
+            case '2': type = 'isJckc'; typeV = 'jckcXq'; break;
+            case '3': type = 'isJcxd'; typeV = 'jcxdXq'; break;
+            case '4': type = 'isJcsj'; typeV = 'jcsjXq'; break;
+            case '5': type = 'isJcwj'; typeV = 'jcwjXq'; break;
+            };
+            if (op.detail.value === '1') {
+                wepy.navigateTo({
+                    url: `inviSummrizeForm?name=异常情况&type=${type}&id=${this.id}&typeV=${typeV}&xkryId=${this.xkryId}`,
+                });
+                return;
+            };
+            const obj = {
+                id: this.id,
+                xkryId: this.xkryId,
+            };
+            obj[type] = 0;
+            obj[typeV] = '';
+            this.methods.saveInfo(obj);
+        },
+        addStudent() {
+            wepy.navigateTo({
+                url: `addFraudStudent?id=${this.id}&xkryId=${this.xkryId}&itemId=`,
+            });
+        },
+        personInfo(op) {
+            wepy.navigateTo({
+                url: `addFraudStudent?id=${this.id}&xkryId=${this.xkryId}&itemId=`,
+            });
+        },
+        checkProsition() {
+            wepy.navigateTo({
+                url: 'examPlan',
+            });
+        },
+        // checkTime() {
+        //     wepy.navigateTo({
+        //         url: 'examPlan',
+        //     });
+        // },
+        inviText() {
+            wepy.navigateTo({
+                url: `inviSummrizeForm?typeV=&id=${this.id}&type=&xkryId=${this.xkryId}`,
+            });
+        },
+
+        saveInfo(obj) {
+            tourTest.save(obj).then(res => {
+                console.log(res);
+            }).catch(res => {
+            });
+        },
+    };
+    onShow(op) {
+        wepy.getStorage({
+            key: 'year',
+        }).then(res => {
+            this.year = res.data;
+            this.$apply();
+        });
+        wepy.getStorage({
+            key: 'site',
+        }).then(res => {
+            this.site = res.data;
+            this.$apply();
+        });
+        try {
+            const value = wepy.getStorageSync('formId');
+            if (value) {
+                const obj = {
+                    xkryId: value,
+                };
+                tourTest.form(obj).then(res => {
+                    const data = res.data.data;
+                    data.isJchs = data.isJchs === null ? 0 : data.isJchs;
+                    this.obj = data;
+                    this.id = data.id;
+                    this.xkryId = data.xkryId;
+                    this.index1[0] = data.isJcjk === null ? 0 : data.isJcjk;
+                    this.index1[1] = data.isJcxs === null ? 0 : data.isJcxs;
+                    this.index1[2] = data.isJckc === null ? 0 : data.isJckc;
+                    this.index1[3] = data.isJcxd === null ? 0 : data.isJcxd;
+                    this.index1[4] = data.isJcsj === null ? 0 : data.isJcsj;
+                    this.index1[5] = data.isJcwj === null ? 0 : data.isJcwj;
+                    this.$apply();
+                });
+            };
+        } catch (e) {};
+    }
+};
+</script>

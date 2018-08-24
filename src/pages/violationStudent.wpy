@@ -1,0 +1,208 @@
+<style lang="less">
+    @import '../styles/base.less';
+    .violation-stu-boss {
+        .has-icon-arrow {
+            position: relative;
+        }
+        .register-surface-list-item {
+            font-size: 34rpx;
+            line-height: 90rpx;
+            view:nth-of-type(1) {
+                color: @000;
+            }
+            view:nth-of-type(2) {
+                color: @888;
+            }
+        }
+        .turn-down {
+            transform: rotate(90deg);
+            transition: transform .2s ease;
+        }
+        .turn-up {
+            transform: rotate(-90deg);
+        }
+        .violation-show-article {
+            color: @333;
+            text-indent: .5em;
+            font-size: 30rpx;
+            line-height: 30rpx;
+            padding-bottom: 30rpx;
+        }
+        .image-container-view {
+            width: 100%;
+            white-space: nowrap;
+            box-sizing: border-box;
+            image {
+                width: 200rpx;
+                height: 224rpx;
+                margin-left: 20rpx;
+            }
+        }
+        .input-info-text-area {
+            width: 100%;
+            font-size: 32rpx;
+            border-radius: 10rpx;
+            padding: 10rpx;
+            box-sizing: border-box;
+        }
+        .text-area-container {
+            padding: 20rpx;
+            box-sizing: border-box;
+            background-color: @bgColor;
+        }
+    }
+</style>
+
+<template>
+    <view class="violation-stu-boss">
+            <ListItemContainer class="has-icon-arrow">
+                <view class="ml30 mr30 column-between register-surface-list-item">
+                    <view>姓名</view>
+                    <view>{{xm}}</view>
+                </view>
+            </ListItemContainer>
+            <ListItemContainer class="has-icon-arrow">
+                <view class="ml30 mr30 column-between register-surface-list-item">
+                    <view>学号</view>
+                    <view>{{xh}}</view>
+                </view>
+            </ListItemContainer>
+            <ListItemContainer class="has-icon-arrow">
+                <view class="ml30 mr30 column-between register-surface-list-item" @tap="tapStuContent">
+                    <view>违规内容</view>
+                    <view class="mr30" wx:if="{{types === 'add'}}">内容</view>
+                    <view class="mr30" wx:if="{{types === 'show'}}">{{showArticle ? '收起' : '查看' }}</view>
+                </view>
+                <image src="../images/arrow.png" class="icon-arrow-right middle turn-down {{showArticle ? 'turn-up' : ''}}" />
+            </ListItemContainer>
+
+            <view wx:if="{{types === 'show' && showArticle}}" class="white pl30 pr30 pt30 pb30 violation-show-article">{{wgxw}}</view>
+            <view wx:if="{{types === 'add' && showArticle}}" class="text-area-container">
+                <textarea 
+                    value='{{infos}}'
+                    maxlength= '-1'
+                    class="white input-info-text-area"
+                    bindinput="getInputInfos"
+                    placeholder-style="color:#888"
+                    focus='{{showArticle}}'
+                    placeholder="请输入违规内容" />
+            </view>
+
+            <!-- <ListItemContainer class="has-icon-arrow" wx-if="{{false}}">
+                <view class="ml30 mr30 column-between register-surface-list-item" @tap="tapStuImage">
+                    <view>图片</view>
+                    <view class="mr30">4张</view>
+                </view>
+                <image src="../images/arrow.png" class="icon-arrow-right middle turn-down {{isShowImgs ? 'turn-up' : ''}}" />
+            </ListItemContainer> -->
+
+            <!-- <scroll-view scroll-x class="image-container-view pt30 pb30" wx-if="{{isShowImgs && types === 'show'}}">
+                    <image @tap="tapToPreviewImage" src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                    <image @tap="tapToPreviewImage" src="https://i.loli.net/2018/07/20/5b517e135e45b.jpg"/>
+                    <image @tap="tapToPreviewImage" src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                    <image @tap="tapToPreviewImage" src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+                    <image @tap="tapToPreviewImage" src="http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg"/>
+            </scroll-view> -->
+
+            <!-- <view wx:if="{{types === 'add' && showArticle}}">123</view> -->
+
+            <button type="primary" class="fix-bottom" @tap="tapToConfirm">确认</button>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import tips from 'utils/tips';
+import ListItemContainer from 'components/listItemContainer';
+
+export default class violationStudent extends wepy.page {
+    config = {
+        navigationBarTitleText: '违规考生',
+    };
+    data = {
+        showArticle: false,
+        isShowImgs: false,
+        xm: null,
+        xh: null,
+        wgxw: null,
+        types: null, // 类型: dis, add
+        infos: null,
+    };
+    components = {
+        ListItemContainer: ListItemContainer,
+    };
+    methods = {
+        // 点击违规内容
+        tapStuContent() {
+            this.showArticle = !this.showArticle;
+        },
+        getInputInfos(val) {
+            this.infos = val.detail.value;
+        },
+        // 点击违规照片
+        // tapStuImage() {
+        //     this.isShowImgs = !this.isShowImgs;
+        // },
+        // 点击确认
+        tapToConfirm() {
+            if (this.types === 'show') wepy.navigateBack({ delta: 1, });
+
+            if (!this.infos && this.types === 'add') {
+                tips.error('请输入违规内容');
+                return;
+            }
+            if (wepy.$instance.globalData.gData.wgks.length) {
+                wepy.$instance.globalData.gData.wgks.forEach((item, index) => {
+                    if (item.xm === this.xm && item.xh === this.xh) {
+                        tips.confirm('已添加该学生,确认进行修改？', {}).then(
+                            res => {
+                                wepy.$instance.globalData.gData.wgks[index].wgxw = this.infos;
+                                wepy.navigateBack({
+                                    delta: 2,
+                                });
+                            }
+                        ).catch(error => {
+                            console.log(error);
+                            tips.error('取消修改');
+                            // wepy.navigateBack({ delta: 2, });
+                        });
+                    } else {
+                        wepy.$instance.globalData.gData.wgks.push({
+                            xm: this.xm,
+                            xh: this.xh,
+                            wgxw: this.infos,
+                            wglx: '1',
+                        });
+                        wepy.navigateBack({
+                            delta: 2,
+                        });
+                    }
+                });
+            } else {
+                wepy.$instance.globalData.gData.wgks.push({
+                    xm: this.xm,
+                    xh: this.xh,
+                    wgxw: this.infos,
+                    wglx: '1',
+                });
+                wepy.navigateBack({
+                    delta: 2,
+                });
+            }
+        },
+        tapToPreviewImage() {
+            wepy.previewImage({
+                current: 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', // 当前显示图片的http链接
+                urls: [ 'http://ww1.sinaimg.cn/large/0061lnyyly1fn2laq5eqvj30m80hs75d.jpg', 'https://i.loli.net/2018/07/20/5b517e135e45b.jpg', ], // 需要预览的图片http链接列表
+            });
+        },
+    };
+    onLoad(query) {
+        this.xm = query.xm;
+        this.xh = query.xh;
+        this.wgxw = query.wgxw ? query.wgxw : '';
+        this.types = query.types;
+        this.$apply();
+    };
+};
+</script>
